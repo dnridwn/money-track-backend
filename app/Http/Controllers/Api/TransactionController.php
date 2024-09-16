@@ -8,6 +8,7 @@ use App\Http\Requests\Transaction\UpdateRequest;
 use App\Http\Resources\TransactionResource;
 use App\Models\Transaction;
 use App\Models\TransactionFee;
+use App\Services\Transaction\BalanceAdjustmentService;
 use App\Services\Transaction\CalculatorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class TransactionController extends Controller
     {
         $transactions = Transaction::with(['account', 'category', 'fees'])
             ->orderBy('date', 'DESC')
+            ->orderBy('id', 'DESC')
             ->paginate(25);
 
         $transactions = $transactions->map(fn($transaction) => new TransactionResource($transaction));
@@ -50,12 +52,13 @@ class TransactionController extends Controller
         try {
             $transaction = Transaction::create(Arr::except($transactionRequest, ['fees']));
 
-            if (count($transactionRequest->fees) > 0) {
-                $transaction->fees()->saveMany($transactionRequest->fees);
+            if (count($transactionRequest['fees'] ?? []) > 0) {
+                $fees = Arr::map($transactionRequest['fees'], fn($fee) => new TransactionFee($fee));
+                $transaction->fees()->saveMany($fees);
             }
 
-            $transaction->total_amount = (new CalculatorService($transaction))->calculateTotalAmount();
-            $transaction->save();
+            (new CalculatorService($transaction))->calculateTotalAmount();
+            (new BalanceAdjustmentService($transaction))->run();
 
             DB::commit();
             return response()->success('Transaction successfully created', new TransactionResource($transaction));
@@ -104,11 +107,11 @@ class TransactionController extends Controller
             $transaction->update(Arr::except($transactionRequest, ['fees']));
 
             $currentFeeIds = $transaction->fees()->pluck('id')->toArray();
-            $incomingFeeIds = collect($transactionRequest->fees ?? [])->pluck('id')->filter()->toArray();
+            $incomingFeeIds = collect($transactionRequest['fees'] ?? [])->pluck('id')->filter()->toArray();
             $feeIdsToDelete = array_diff($currentFeeIds, $incomingFeeIds);
             TransactionFee::destroy($feeIdsToDelete);
 
-            foreach (($transactionRequest->fees ?? []) as $feeRequest) {
+            foreach (($transactionRequest['fees'] ?? []) as $feeRequest) {
                 if (isset($feeRequest['id'])) {
                     $transactionFee = TransactionFee::find($feeRequest['id']);
                     if (empty($transactionFee)) {
@@ -129,7 +132,7 @@ class TransactionController extends Controller
 
         } catch (Throwable $t) {
             DB::rollBack();
-            return response()->failed('Failed to create transaction');
+            return response()->failed('Failed to update transaction');
         }
     }
 

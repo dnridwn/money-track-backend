@@ -16,26 +16,28 @@ class CalculatorService
         $this->transaction = $transaction;
     }
 
-    public function calculateTotalAmount(): float
+    public function calculateTotalAmount()
     {
-        $totalAmount = $this->transaction->amount ?? 0;
-
-        foreach (($this->transaction->fees ?? []) as $fee) {
-            if ($fee->type === TransactionFee::OPERATION_TYPE_INDUCT) {
+        $totalAmount = $this->transaction->amount;
+        
+        foreach ($this->transaction->fees as $fee) {
+            if ($fee->operation === TransactionFee::OPERATION_TYPE_INDUCT) {
                 if ($fee->format === TransactionFee::FORMAT_AMOUNT) {
                     $totalAmount += $fee->amount;
                 } else if ($fee->format === TransactionFee::FORMAT_PERCENT) {
-                    $totalAmount += ($totalAmount * ($fee->amount / 100));
+                    $totalAmount += ($this->transaction->amount * ($fee->amount / 100));
                 }
-            } else if ($fee->type === TransactionFee::OPERATION_TYPE_DEDUCT) {
+            } else if ($fee->operation === TransactionFee::OPERATION_TYPE_DEDUCT) {
                 if ($fee->format === TransactionFee::FORMAT_AMOUNT) {
                     $totalAmount -= $fee->amount;
                 } else if ($fee->format === TransactionFee::FORMAT_PERCENT) {
-                    $totalAmount -= ($totalAmount * ($fee->amount / 100));
+                    $totalAmount -= ($this->transaction->amount * ($fee->amount / 100));
                 }
             }
         }
 
-        return $totalAmount;
+        $this->transaction->update([
+            'total_amount' => $totalAmount
+        ]);
     }
 }

@@ -39,7 +39,8 @@ class CreateRequest extends FormRequest
             ],
             'transfer_to_account_id' => [
                 'required_if:type,' . Transaction::TYPE_TRANSFER,
-                'exists:App\Models\Account,id'
+                'exists:App\Models\Account,id',
+                'different:account_id'
             ],
             'date' => [
                 'required',
@@ -55,6 +56,10 @@ class CreateRequest extends FormRequest
                 'array'
             ],
             'fees.*.type' => [
+                'required_with:fees',
+                Rule::in(TransactionFee::TYPE_COMMISSION, TransactionFee::TYPE_TAX)
+            ],
+            'fees.*.operation' => [
                 'required_with:fees',
                 Rule::in(TransactionFee::OPERATION_TYPE_INDUCT, TransactionFee::OPERATION_TYPE_DEDUCT)
             ],
@@ -79,16 +84,19 @@ class CreateRequest extends FormRequest
             'category_id.exists' => 'Target category is not exists',
             'transfer_to_account_id.required_if' => 'Please choose target account',
             'transfer_to_account_id.exists' => 'Target account is not exists',
+            'transfer_to_account_id.different' => 'Transfer to account cannot be same with source account',
             'date.required' => 'Please fill date',
             'date.date_format' => 'Invalid date format',
             'amount.required' => 'Please fill amount',
             'note.max' => 'Note is too long',
             'fees.array' => 'Invalid fees',
-            'fees.*.type.required_with' => 'Please choose commission type',
-            'fees.*.type.in' => 'Invalid commission type',
-            'fees.*.format.required_with' => 'Please choose commission format',
-            'fees.*.format.in' => 'Invalid commission format',
-            'fees.*.amount.required_with' => 'Please fill commission amount'
+            'fees.*.type.required_with' => 'Please choose fee type',
+            'fees.*.type.in' => 'Invalid fee type',
+            'fees.*.operation.required_with' => 'Please choose fee operation type',
+            'fees.*.operation.in' => 'Invalid fee operation type',
+            'fees.*.format.required_with' => 'Please choose fee format',
+            'fees.*.format.in' => 'Invalid fee format',
+            'fees.*.amount.required_with' => 'Please fill fee amount'
         ];
     }
 }

@@ -18,7 +18,9 @@ class CategoryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'type' => $this->type
+            'type' => $this->type,
+            'total_transaction_amount' => $this->total_transaction_amount,
+            'total_transaction_amount_formatted' => $this->total_transaction_amount_formatted
         ];
     }
 }

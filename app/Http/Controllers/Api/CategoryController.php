@@ -29,6 +29,7 @@ class CategoryController extends Controller
         }
 
         $categories = $categories->paginate(25);
+        $categories = $categories->each(fn($category) => $category->append(['total_transaction_amount', 'total_transaction_amount_formatted']));
         $categories = $categories->map(fn($category) => new CategoryResource($category));
 
         return response()->success('Successfully get categories', $categories);

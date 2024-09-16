@@ -5,6 +5,8 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Transaction extends Model
@@ -36,27 +38,34 @@ class Transaction extends Model
         return !empty($this->date) ? Carbon::createFromFormat('Y-m-d', $this->date)->format('d/m/Y') : 'N/A';
     }
 
-    public function getAmountFormattedAttribute()
+    public function getTotalAmountFormattedAttribute(): string
     {
-        return number_format($this->total_amount);
+        $preAmountSymbol = '';
+        if ($this->type === $this::TYPE_DEBIT) {
+            $preAmountSymbol = '+';
+        } else if ($this->type === $this::TYPE_CREDIT) {
+            $preAmountSymbol = '-';
+        }
+
+        return $preAmountSymbol . number_format($this->total_amount);
     }
 
-    public function account()
+    public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'account_id');
     }
 
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
 
-    public function transferToAccount()
+    public function transferToAccount(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'transfer_to_account_id');
     }
 
-    public function fees()
+    public function fees(): HasMany
     {
         return $this->hasMany(TransactionFee::class, 'transaction_id');
     }

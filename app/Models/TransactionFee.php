@@ -13,7 +13,7 @@ class TransactionFee extends Model
     protected $fillable = [
         'transaction_id',
         'type',
-        'operation_type',
+        'operation',
         'format',
         'amount'
     ];

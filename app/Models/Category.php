@@ -18,4 +18,19 @@ class Category extends Model
         'description',
         'type'
     ];
+
+    public function getTotalTransactionAmountAttribute()
+    {
+        return $this->transactions()->sum('amount');
+    }
+
+    public function getTotalTransactionAmountFormattedAttribute()
+    {
+        return number_format($this->total_transaction_amount, 2);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class, 'category_id');
+    }
 }

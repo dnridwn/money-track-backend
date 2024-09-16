@@ -24,6 +24,7 @@ class TransactionResource extends JsonResource
             'date_formatted' => $this->date_formatted,
             'amount' => $this->amount,
             'total_amount' => $this->total_amount,
+            'total_amount_formatted' => $this->total_amount_formatted,
             'note' => $this->note,
             'fees' => !empty($this->fees) ? collect($this->fees)->map(fn($fee) => new TransactionFeeResource($fee)) : NULL
         ];

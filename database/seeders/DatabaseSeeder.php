@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Account;
+use App\Models\Category;
+use App\Models\Transaction;
+use App\Models\TransactionFee;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,11 +15,39 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        if (app()->environment('local')) {
+            $this->resetDatabase();
+            $this->createDefaultData();
+        }
+    }
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+    public function resetDatabase(): void
+    {
+        Account::whereNotNull('id')->forceDelete();
+        Category::whereNotNull('id')->forceDelete();
+        Transaction::whereNotNull('id')->forceDelete();
+        TransactionFee::whereNotNull('id')->forceDelete();
+    }
+
+    public function createDefaultData(): void
+    {
+        Account::create([
+            'name' => 'Cash',
+            'description' => '',
+            'type' => 'Account',
+            'balance' => 0
+        ]);
+
+        Category::create([
+            'name' => 'Salary',
+            'description' => '',
+            'type' => 'Income'
+        ]);
+
+        Category::create([
+            'name' => 'Food',
+            'description' => '',
+            'type' => 'Expense'
         ]);
     }
 }
