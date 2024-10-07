@@ -9,6 +9,7 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Throwable;
 
 class CategoryController extends Controller
@@ -93,7 +94,7 @@ class CategoryController extends Controller
         $categoryRequest = $request->validated();
 
         try {
-            $category->update($categoryRequest);
+            $category->update(Arr::except($categoryRequest, ['type']));
             return response()->success('Category successfully updated', new CategoryResource($category));
 
         } catch (Throwable $t) {

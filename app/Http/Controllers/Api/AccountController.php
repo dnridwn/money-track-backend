@@ -9,6 +9,7 @@ use App\Http\Resources\AccountResource;
 use App\Models\Account;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Throwable;
 
 class AccountController extends Controller
@@ -92,7 +93,7 @@ class AccountController extends Controller
         $accountRequest = $request->validated();
 
         try {
-            $account->update($accountRequest);
+            $account->update(Arr::except($accountRequest, ['type']));
             return response()->success('Account successfully updated', new AccountResource($account));
 
         } catch (Throwable $t) {
