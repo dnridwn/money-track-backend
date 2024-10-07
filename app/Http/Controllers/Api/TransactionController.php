@@ -21,9 +21,11 @@ class TransactionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $transactions = Transaction::with(['account', 'category', 'fees'])
+            ->when(!empty($request->start_date), fn($query) => $query->where('date', '>=', $request->start_date))
+            ->when(!empty($request->end_date), fn($query) => $query->where('date', '<=', $request->end_date))
             ->orderBy('date', 'DESC')
             ->orderBy('id', 'DESC')
             ->paginate(25);
